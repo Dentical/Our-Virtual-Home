@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Наш Виртуальный Дом & Мир </title>
+    <title>Наш Виртуальный Дом & Мир</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -17,9 +17,33 @@
             --text-muted: #8d99ae;
             --shadow: 0 10px 30px rgba(224, 122, 95, 0.08);
             --radius: 20px;
+            --border-color: #e5e7eb;
+            --input-bg: #ffffff;
+            --chat-bg: #fafaf9;
+            --chat-msg-bg: #ffffff;
+            --chat-msg-mine: #fdf0ed;
+            --note-yellow: #fff3b0;
+            --note-pink: #ffc8dd;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --primary-color: #e07a5f;
+            --secondary-color: #f4a261;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            --border-color: #374151;
+            --input-bg: #2a2a2a;
+            --chat-bg: #181818;
+            --chat-msg-bg: #262626;
+            --chat-msg-mine: #3d241d;
+            --note-yellow: #3d3a22;
+            --note-pink: #3d222b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; transition: background 0.3s, color 0.3s; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 950px; display: flex; flex-direction: column; gap: 25px; }
 
@@ -30,17 +54,26 @@
         header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary-color); margin-bottom: 5px; }
         header p { color: var(--text-muted); font-size: 0.95rem; }
 
+        .theme-toggle-btn {
+            position: absolute; top: 20px; right: 20px;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-main); width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .theme-toggle-btn:hover { background: var(--border-color); }
+
         .user-auth-section { margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .google-btn {
-            background: #ffffff; color: #374151; border: 1px solid #d1d5db; padding: 8px 16px;
+            background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 16px;
             border-radius: 12px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: background 0.2s;
         }
-        .google-btn:hover { background: #f3f4f6; }
+        .google-btn:hover { background: var(--border-color); }
         .user-profile { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 500; }
         .user-profile img { width: 32px; height: 32px; border-radius: 50%; }
 
         .counters-row { display: flex; justify-content: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-        .badge { font-size: 0.85rem; background: #fdf0ed; padding: 6px 15px; border-radius: 20px; color: var(--primary-color); font-weight: 500; }
+        .badge { font-size: 0.85rem; background: var(--border-color); padding: 6px 15px; border-radius: 20px; color: var(--primary-color); font-weight: 500; }
 
         .room-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 768px) { .room-grid { grid-template-columns: 1fr; } }
@@ -63,13 +96,13 @@
         .plant-box { text-align: center; align-items: center; }
         .plant-icon { font-size: 4rem; margin: 10px 0; }
         .lamp-box { text-align: center; align-items: center; }
-        .lamp-icon { font-size: 4rem; color: #d1d5db; margin: 10px 0; transition: color 0.4s, text-shadow 0.4s; }
+        .lamp-icon { font-size: 4rem; color: var(--text-muted); margin: 10px 0; transition: color 0.4s, text-shadow 0.4s; }
         .lamp-icon.active { color: #f7b801; text-shadow: 0 0 25px rgba(247, 184, 1, 0.6); }
 
         .full-width { grid-column: span 2; }
         @media (max-width: 768px) { .full-width { grid-column: span 1; } }
 
-        /* Погода и расстояния */
+        /* Погода */
         .weather-container { display: flex; justify-content: space-around; align-items: center; text-align: center; gap: 10px; }
         .city-box { font-weight: 500; font-size: 0.95rem; }
         .city-temp { font-size: 1.5rem; color: var(--primary-color); font-weight: 600; margin: 5px 0; }
@@ -77,44 +110,41 @@
         /* Записки */
         .notes-container { display: flex; gap: 15px; flex-wrap: wrap; min-height: 90px; }
         .sticky-note {
-            background: #fff3b0; padding: 15px; width: 170px; min-height: 110px; border-radius: 4px;
-            box-shadow: 3px 3px 10px rgba(0,0,0,0.08); font-size: 0.9rem; position: relative; transform: rotate(-2deg);
-            display: flex; flex-direction: column; justify-content: space-between;
+            background: var(--note-yellow); padding: 15px; width: 170px; min-height: 110px; border-radius: 4px;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.1); font-size: 0.9rem; position: relative; transform: rotate(-2deg);
+            display: flex; flex-direction: column; justify-content: space-between; color: #2b2d42;
         }
-        .sticky-note:nth-child(even) { background: #ffc8dd; transform: rotate(2deg); }
+        .sticky-note:nth-child(even) { background: var(--note-pink); }
         .sticky-note .delete-note { align-self: flex-end; background: none; border: none; cursor: pointer; color: rgba(0,0,0,0.4); }
         .add-note-form { display: flex; gap: 10px; margin-top: 5px; }
-        .add-note-form input { flex: 1; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 10px; outline: none; }
+        .add-note-form input, input, select { flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 10px; outline: none; }
 
         /* Чат */
         .chat-tabs { display: flex; gap: 10px; margin-bottom: 5px; }
-        .tab-btn { flex: 1; padding: 6px; border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.85rem; }
+        .tab-btn { flex: 1; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.85rem; }
         .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-        .chat-messages { height: 160px; overflow-y: auto; background: #fafaf9; border: 1px solid #f3f4f6; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .chat-msg { font-size: 0.85rem; padding: 6px 10px; border-radius: 8px; background: #fff; max-width: 80%; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .chat-msg.mine { align-self: flex-end; background: #fdf0ed; }
+        .chat-messages { height: 160px; overflow-y: auto; background: var(--chat-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { font-size: 0.85rem; padding: 6px 10px; border-radius: 8px; background: var(--chat-msg-bg); max-width: 80%; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .chat-msg.mine { align-self: flex-end; background: var(--chat-msg-mine); }
         .chat-msg .author { font-size: 0.7rem; color: var(--primary-color); font-weight: 600; margin-bottom: 2px; }
         .chat-input-box { display: flex; gap: 8px; margin-top: 5px; }
-        .chat-input-box input { flex: 1; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 10px; outline: none; font-size: 0.85rem; }
 
         /* Капсула времени */
         .capsule-box { text-align: center; }
         .capsule-form { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .capsule-form input { flex: 1; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 10px; outline: none; }
 
-        /* Игра Правда или Действие */
+        /* Игра */
         .game-box { text-align: center; }
         .game-text { font-style: italic; color: var(--primary-color); font-size: 1.05rem; min-height: 50px; display: flex; align-items: center; justify-content: center; }
 
         /* Плейлист */
-        .playlist-box input { width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 8px; outline: none; }
         .playlist-items { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; }
-        .song-item { font-size: 0.85rem; background: #f9fafb; padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .song-item { font-size: 0.85rem; background: var(--input-bg); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Уведомление об объятии */
+        /* Всплывающее окно */
         #hugPopup {
-            position: fixed; top: 20px; right: 20px; background: #ffffff; border-left: 4px solid var(--primary-color);
-            padding: 15px 20px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; z-index: 1000;
+            position: fixed; top: 20px; right: 20px; background: var(--card-bg); border-left: 4px solid var(--primary-color);
+            color: var(--text-main); padding: 15px 20px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: none; z-index: 1000;
         }
 
         .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; margin-top: 5px; }
@@ -123,7 +153,7 @@
         footer { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.85rem; }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
     <div id="hugPopup">
         <strong>🤗 Виртуальное объятие!</strong>
@@ -132,6 +162,9 @@
 
     <div class="container">
         <header>
+            <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Сменить тему">
+                <i class="fa-solid fa-moon" id="themeIcon"></i>
+            </button>
             <h1>Наш Виртуальный Дом & Мир</h1>
             <p>Уютное пространство для двоих и связь на любом расстоянии</p>
             
@@ -165,25 +198,25 @@
                 <button class="btn" onclick="toggleLamp()">Вкл / Выкл</button>
             </div>
 
-            <!-- 3. Погода и расстояние -->
+            <!-- 3. Погода -->
             <div class="card full-width">
                 <h2><i class="fa-solid fa-cloud-sun"></i> Погода & Расстояние</h2>
                 <div class="weather-container">
                     <div class="city-box">
-                        <div id="city1Name">Город 1</div>
+                        <div id="city1Name">Москва</div>
                         <div class="city-temp" id="city1Temp">--°C</div>
                     </div>
                     <div style="font-size: 0.85rem; color: var(--text-muted);">
-                        <i class="fa-solid fa-heart" style="color: var(--primary-color);"></i> Около 750 км
+                        <i class="fa-solid fa-heart" style="color: var(--primary-color);"></i> ~750 км
                     </div>
                     <div class="city-box">
-                        <div id="city2Name">Город 2</div>
+                        <div id="city2Name">Санкт-Петербург</div>
                         <div class="city-temp" id="city2Temp">--°C</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 4. Кнопка объятий -->
+            <!-- 4. Объятия -->
             <div class="card full-width" style="text-align: center; align-items: center;">
                 <h2><i class="fa-solid fa-hands-holding-child"></i> Отправить тепло</h2>
                 <p style="font-size: 0.85rem; color: var(--text-muted);">Передать мгновенное объятие на экран любимого человека</p>
@@ -215,7 +248,7 @@
                 <div id="capsuleContent" style="font-size: 0.95rem; font-weight: 500; color: var(--primary-color); display:none;"></div>
             </div>
 
-            <!-- 7. Игра: Правда или Действие -->
+            <!-- 7. Правда или Действие -->
             <div class="card game-box full-width">
                 <h2><i class="fa-solid fa-dice"></i> Правда или Действие для пар</h2>
                 <div class="game-text" id="gameDisplay">Нажмите кнопку, чтобы получить задание или вопрос!</div>
@@ -225,7 +258,7 @@
                 </div>
             </div>
 
-            <!-- 8. Записки на холодильник -->
+            <!-- 8. Записки -->
             <div class="card full-width">
                 <h2><i class="fa-solid fa-note-sticky"></i> Записки на холодильник</h2>
                 <div class="notes-container" id="notesContainer"></div>
@@ -235,19 +268,21 @@
                 </div>
             </div>
 
-            <!-- 9. Саундтрек отношений -->
-            <div class="card full-width playlist-box">
+            <!-- 9. Плейлист -->
+            <div class="card full-width">
                 <h2><i class="fa-solid fa-music"></i> Наш Плейлист</h2>
-                <input type="text" id="songTitleInput" placeholder="Название песни / ссылка...">
-                <button class="btn" onclick="addSong()" style="width: 100%; margin-bottom: 10px;">Добавить в плейлист 🎵</button>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="songTitleInput" placeholder="Название песни / ссылка...">
+                    <button class="btn" onclick="addSong()">Добавить 🎵</button>
+                </div>
                 <div class="playlist-items" id="playlistContainer"></div>
             </div>
 
-            <!-- 10. Плеер YouTube -->
+            <!-- 10. Плеер -->
             <div class="card full-width">
                 <h2><i class="fa-solid fa-circle-play"></i> Совместный просмотр видео</h2>
                 <div style="display: flex; gap: 10px;">
-                    <input type="text" id="videoUrlInput" placeholder="Ссылка на YouTube..." style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; outline:none;">
+                    <input type="text" id="videoUrlInput" placeholder="Ссылка на YouTube..." style="flex:1;">
                     <button class="btn" onclick="loadVideo()">Включить</button>
                 </div>
                 <div class="video-wrapper">
@@ -373,6 +408,27 @@
     </script>
 
     <script>
+        // Смена темы
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            const icon = document.getElementById('themeIcon');
+            if (theme === 'dark') {
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                icon.className = 'fa-solid fa-moon';
+            }
+        }
+
+        window.toggleTheme = function() {
+            const current = document.body.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        };
+
+        // Загрузка сохраненной темы
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+
         // Даты
         const startDate = new Date('2024-02-14');
         const meetingDate = new Date('2026-07-01');
@@ -381,7 +437,7 @@
         const diffMeeting = Math.ceil((meetingDate - today) / (1000 * 60 * 60 * 24));
         document.getElementById('meetingCounter').innerText = diffMeeting > 0 ? `До встречи: ${diffMeeting} дн. ✨` : `Мы вместе! 🎉`;
 
-        // Погода (Бесплатное демо по IP/координатам)
+        // Погода
         fetch('https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.61&current_weather=true')
             .then(res => res.json()).then(data => {
                 document.getElementById('city1Name').innerText = 'Москва';
