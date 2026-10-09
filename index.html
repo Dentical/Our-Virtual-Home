@@ -117,12 +117,15 @@
         .add-note-form { display: flex; gap: 10px; margin-top: 5px; }
         .add-note-form input, input, select { flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 10px; outline: none; }
 
-        /* Стили чата с разделением свои / чужие сообщения */
+        /* Стили чата и поиска по ID */
         .chat-tabs { display: flex; gap: 10px; margin-bottom: 5px; }
         .tab-btn { flex: 1; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.85rem; }
         .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-        .chat-messages { height: 180px; overflow-y: auto; background: var(--chat-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
         
+        .partner-search-box { display: flex; gap: 8px; margin-bottom: 8px; background: var(--chat-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border-color); align-items: center; }
+        .partner-search-box input { font-size: 0.85rem; }
+
+        .chat-messages { height: 180px; overflow-y: auto; background: var(--chat-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
         .chat-msg { font-size: 0.85rem; padding: 8px 12px; border-radius: 10px; background: var(--chat-msg-bg); max-width: 80%; box-shadow: 0 2px 5px rgba(0,0,0,0.02); align-self: flex-start; border: 1px solid var(--border-color); }
         .chat-msg.mine { align-self: flex-end; background: var(--chat-msg-mine); border-color: transparent; }
         .chat-msg .author { font-size: 0.7rem; color: var(--primary-color); font-weight: 700; margin-bottom: 2px; }
@@ -219,14 +222,24 @@
                 <button class="btn" onclick="sendHug()">Отправить объятие 🤗</button>
             </div>
 
-            <!-- 5. Чат -->
+            <!-- 5. Чат с поиском партнера по ID -->
             <div class="card full-width">
                 <h2><i class="fa-solid fa-comments"></i> Комната общения</h2>
+                
                 <div class="chat-tabs">
-                    <button class="tab-btn active" id="tabPair" onclick="switchChat('pair')">🔒 Для двоих</button>
-                    <button class="tab-btn" id="tabWorld" onclick="switchChat('world')">🌍 Общий Мир</button>
+                    <button class="tab-btn active" id="tabPair" onclick="switchChatMode('pair')">🔒 Общий для двоих</button>
+                    <button class="tab-btn" id="tabWorld" onclick="switchChatMode('world')">🌍 Общий Мир</button>
+                    <button class="tab-btn" id="tabPrivate" onclick="switchChatMode('private')">💌 Приватный чат</button>
                 </div>
+
+                <div class="partner-search-box" id="partnerSearchBox" style="display: none;">
+                    <span style="font-size: 0.85rem; font-weight: 500;"><i class="fa-solid fa-magnifying-glass"></i> Найти по ID:</span>
+                    <input type="text" id="partnerIdInput" placeholder="Введите ID партнера (например, user_xxxxxx)">
+                    <button class="btn" style="padding: 6px 14px; font-size: 0.85rem;" onclick="connectWithPartner()">Связаться</button>
+                </div>
+
                 <div class="chat-messages" id="chatMessages"></div>
+                
                 <div class="chat-input-box">
                     <input type="text" id="chatInput" placeholder="Написать сообщение..." maxlength="200" onkeypress="handleChatKey(event)">
                     <button class="btn" onclick="sendChatMessage()">Отправить</button>
@@ -297,12 +310,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-        import { getDatabase, ref, push, onChildAdded, query, limitToLast } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, query, limitToLast, off } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBe7NI_U1YH8kY1EFCjm9fFqgqvuKMTW5Y",
             authDomain: "our-virtual-home.firebaseapp.com",
-            databaseURL: "https://our-virtual-home-default-rtdb.firebaseio.com", // Убедитесь, что URL вашей БД корректен
+            databaseURL: "https://our-virtual-home-default-rtdb.firebaseio.com",
             projectId: "our-virtual-home",
             storageBucket: "our-virtual-home.firebasestorage.app",
             messagingSenderId: "160299718052",
@@ -315,7 +328,7 @@
         const rtdb = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
-        // 1. Генерация/получение уникального ID пользователя (сохраняется в localStorage)
+        // Уникальный ID пользователя
         let myUserId = localStorage.getItem('myUniqueUserId');
         if (!myUserId) {
             myUserId = 'user_' + Math.random().toString(36).substring(2, 8);
@@ -324,7 +337,11 @@
         document.getElementById('myUserIdBadge').innerText = `ID: ${myUserId}`;
 
         let currentUserName = 'Гость';
-        window.currentChatMode = 'pair'; // 'pair' или 'world'
+        window.currentChatMode = 'pair'; // 'pair', 'world', 'private'
+        let currentPartnerId = localStorage.getItem('savedPartnerId') || '';
+        if (currentPartnerId) {
+            document.getElementById('partnerIdInput').value = currentPartnerId;
+        }
 
         window.loginWithGoogle = () => signInWithPopup(auth, provider).catch(err => console.error(err));
         window.logoutFromGoogle = () => signOut(auth);
@@ -342,7 +359,7 @@
                     <div class="badge" id="myUserIdBadge" style="margin: 0; background: var(--card-bg); border: 1px solid var(--border-color);">ID: ${myUserId}</div>
                 `;
             } else {
-                currentUserName = 'Гость (' + myUserId + ')';
+                currentUserName = 'Гость';
                 authSection.innerHTML = `
                     <button class="google-btn" onclick="loginWithGoogle()">
                         <i class="fa-brands fa-google"></i> Войти через Google
@@ -352,13 +369,30 @@
             }
         });
 
-        // 2. Отправка сообщений в Realtime Database
+        // Функция получения пути к ветке чата
+        function getChatPath() {
+            if (window.currentChatMode === 'world') return 'chat_world';
+            if (window.currentChatMode === 'pair') return 'chat_pair';
+            if (window.currentChatMode === 'private') {
+                if (!currentPartnerId) return 'chat_pair'; // Если партнер не введен
+                // Создаем уникальный стабильный путь для двоих по отсортированным ID
+                const ids = [myUserId, currentPartnerId].sort();
+                return `chat_private_${ids[0]}_${ids[1]}`;
+            }
+            return 'chat_pair';
+        }
+
         window.sendChatMessage = function() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
             if (!text) return;
 
-            const path = window.currentChatMode === 'pair' ? 'chat_pair' : 'chat_world';
+            if (window.currentChatMode === 'private' && !currentPartnerId) {
+                alert('Сначала введите ID партнера в поле выше!');
+                return;
+            }
+
+            const path = getChatPath();
             const messagesRef = ref(rtdb, path);
 
             push(messagesRef, {
@@ -373,24 +407,44 @@
 
         window.handleChatKey = (e) => { if (e.key === 'Enter') sendChatMessage(); };
 
-        window.switchChat = function(mode) {
+        window.switchChatMode = function(mode) {
             window.currentChatMode = mode;
             document.getElementById('tabPair').classList.toggle('active', mode === 'pair');
             document.getElementById('tabWorld').classList.toggle('active', mode === 'world');
+            document.getElementById('tabPrivate').classList.toggle('active', mode === 'private');
+
+            const searchBox = document.getElementById('partnerSearchBox');
+            searchBox.style.display = (mode === 'private') ? 'flex' : 'none';
+
             setupChatListener();
         };
 
-        let currentListener = null;
+        window.connectWithPartner = function() {
+            const partnerInput = document.getElementById('partnerIdInput').value.trim();
+            if (!partnerInput) {
+                alert('Введите ID партнера!');
+                return;
+            }
+            if (partnerInput === myUserId) {
+                alert('Нельзя указать свой собственный ID.');
+                return;
+            }
+            currentPartnerId = partnerInput;
+            localStorage.setItem('savedPartnerId', currentPartnerId);
+            alert(`Успешно! Теперь вы связаны с ID: ${currentPartnerId}`);
+            setupChatListener();
+        };
+
+        let activeRef = null;
         function setupChatListener() {
             const container = document.getElementById('chatMessages');
             container.innerHTML = '';
 
-            const path = window.currentChatMode === 'pair' ? 'chat_pair' : 'chat_world';
+            const path = getChatPath();
             const messagesRef = ref(rtdb, path);
-            const recentMessagesQuery = query(messagesRef, limitToLast(50));
+            const recentQuery = query(messagesRef, limitToLast(50));
 
-            // Очищаем предыдущий слушатель, если переключались
-            onChildAdded(recentMessagesQuery, (snapshot) => {
+            onChildAdded(recentQuery, (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
 
@@ -407,7 +461,7 @@
         }
         setupChatListener();
 
-        // 3. Объятия через Realtime Database
+        // Объятия
         window.sendHug = function() {
             const hugsRef = ref(rtdb, 'hugs');
             push(hugsRef, { from: currentUserName, time: Date.now() })
@@ -417,7 +471,7 @@
         const hugsRef = ref(rtdb, 'hugs');
         onChildAdded(query(hugsRef, limitToLast(1)), (snapshot) => {
             const data = snapshot.val();
-            if (data && data.time > Date.now() - 10000) { // Показываем только свежие
+            if (data && data.time > Date.now() - 10000) {
                 const popup = document.getElementById('hugPopup');
                 document.getElementById('hugText').innerText = `${data.from || 'Любимый человек'} шлет вам объятие! ❤️`;
                 popup.style.display = 'block';
