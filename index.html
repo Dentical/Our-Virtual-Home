@@ -63,7 +63,7 @@
         }
         .theme-toggle-btn:hover { background: var(--border-color); }
 
-        .user-auth-section { margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .user-auth-section { margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
         .google-btn {
             background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 16px;
             border-radius: 12px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: background 0.2s;
@@ -102,12 +102,10 @@
         .full-width { grid-column: span 2; }
         @media (max-width: 768px) { .full-width { grid-column: span 1; } }
 
-        /* Погода */
         .weather-container { display: flex; justify-content: space-around; align-items: center; text-align: center; gap: 10px; }
         .city-box { font-weight: 500; font-size: 0.95rem; }
         .city-temp { font-size: 1.5rem; color: var(--primary-color); font-weight: 600; margin: 5px 0; }
 
-        /* Записки */
         .notes-container { display: flex; gap: 15px; flex-wrap: wrap; min-height: 90px; }
         .sticky-note {
             background: var(--note-yellow); padding: 15px; width: 170px; min-height: 110px; border-radius: 4px;
@@ -119,29 +117,26 @@
         .add-note-form { display: flex; gap: 10px; margin-top: 5px; }
         .add-note-form input, input, select { flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 10px; outline: none; }
 
-        /* Чат */
+        /* Стили чата с разделением свои / чужие сообщения */
         .chat-tabs { display: flex; gap: 10px; margin-bottom: 5px; }
         .tab-btn { flex: 1; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.85rem; }
         .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-        .chat-messages { height: 160px; overflow-y: auto; background: var(--chat-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .chat-msg { font-size: 0.85rem; padding: 6px 10px; border-radius: 8px; background: var(--chat-msg-bg); max-width: 80%; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .chat-msg.mine { align-self: flex-end; background: var(--chat-msg-mine); }
-        .chat-msg .author { font-size: 0.7rem; color: var(--primary-color); font-weight: 600; margin-bottom: 2px; }
+        .chat-messages { height: 180px; overflow-y: auto; background: var(--chat-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        
+        .chat-msg { font-size: 0.85rem; padding: 8px 12px; border-radius: 10px; background: var(--chat-msg-bg); max-width: 80%; box-shadow: 0 2px 5px rgba(0,0,0,0.02); align-self: flex-start; border: 1px solid var(--border-color); }
+        .chat-msg.mine { align-self: flex-end; background: var(--chat-msg-mine); border-color: transparent; }
+        .chat-msg .author { font-size: 0.7rem; color: var(--primary-color); font-weight: 700; margin-bottom: 2px; }
         .chat-input-box { display: flex; gap: 8px; margin-top: 5px; }
 
-        /* Капсула времени */
         .capsule-box { text-align: center; }
         .capsule-form { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 
-        /* Игра */
         .game-box { text-align: center; }
         .game-text { font-style: italic; color: var(--primary-color); font-size: 1.05rem; min-height: 50px; display: flex; align-items: center; justify-content: center; }
 
-        /* Плейлист */
         .playlist-items { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; }
         .song-item { font-size: 0.85rem; background: var(--input-bg); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Всплывающее окно */
         #hugPopup {
             position: fixed; top: 20px; right: 20px; background: var(--card-bg); border-left: 4px solid var(--primary-color);
             color: var(--text-main); padding: 15px 20px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: none; z-index: 1000;
@@ -172,6 +167,7 @@
                 <button class="google-btn" onclick="loginWithGoogle()">
                     <i class="fa-brands fa-google"></i> Войти через Google
                 </button>
+                <div class="badge" id="myUserIdBadge" style="margin: 0; background: var(--card-bg); border: 1px solid var(--border-color);">ID: загрузка...</div>
             </div>
 
             <div class="counters-row">
@@ -297,16 +293,16 @@
         </footer>
     </div>
 
-    <!-- Firebase SDK (Modular v13) -->
+    <!-- Firebase SDK (Modular v13) + Realtime Database -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-analytics.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+        import { getDatabase, ref, push, onChildAdded, query, limitToLast } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBe7NI_U1YH8kY1EFCjm9fFqgqvuKMTW5Y",
             authDomain: "our-virtual-home.firebaseapp.com",
+            databaseURL: "https://our-virtual-home-default-rtdb.firebaseio.com", // Убедитесь, что URL вашей БД корректен
             projectId: "our-virtual-home",
             storageBucket: "our-virtual-home.firebasestorage.app",
             messagingSenderId: "160299718052",
@@ -315,46 +311,64 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const rtdb = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
-        let currentUser = null;
-        window.currentChatMode = 'pair';
+        // 1. Генерация/получение уникального ID пользователя (сохраняется в localStorage)
+        let myUserId = localStorage.getItem('myUniqueUserId');
+        if (!myUserId) {
+            myUserId = 'user_' + Math.random().toString(36).substring(2, 8);
+            localStorage.setItem('myUniqueUserId', myUserId);
+        }
+        document.getElementById('myUserIdBadge').innerText = `ID: ${myUserId}`;
+
+        let currentUserName = 'Гость';
+        window.currentChatMode = 'pair'; // 'pair' или 'world'
 
         window.loginWithGoogle = () => signInWithPopup(auth, provider).catch(err => console.error(err));
         window.logoutFromGoogle = () => signOut(auth);
 
         onAuthStateChanged(auth, (user) => {
-            currentUser = user;
             const authSection = document.getElementById('authSection');
             if (user) {
+                currentUserName = user.displayName;
                 authSection.innerHTML = `
                     <div class="user-profile">
                         <img src="${user.photoURL || 'https://via.placeholder.com/32'}" alt="Avatar">
                         <span>${user.displayName}</span>
                         <button class="google-btn" style="padding: 4px 10px; font-size: 0.8rem;" onclick="logoutFromGoogle()">Выйти</button>
                     </div>
+                    <div class="badge" id="myUserIdBadge" style="margin: 0; background: var(--card-bg); border: 1px solid var(--border-color);">ID: ${myUserId}</div>
                 `;
             } else {
+                currentUserName = 'Гость (' + myUserId + ')';
                 authSection.innerHTML = `
                     <button class="google-btn" onclick="loginWithGoogle()">
                         <i class="fa-brands fa-google"></i> Войти через Google
                     </button>
+                    <div class="badge" id="myUserIdBadge" style="margin: 0; background: var(--card-bg); border: 1px solid var(--border-color);">ID: ${myUserId}</div>
                 `;
             }
         });
 
+        // 2. Отправка сообщений в Realtime Database
         window.sendChatMessage = function() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
             if (!text) return;
-            const author = currentUser ? currentUser.displayName : 'Гость';
-            const col = window.currentChatMode === 'pair' ? 'chat_pair' : 'chat_world';
 
-            addDoc(collection(db, col), { text, author, time: serverTimestamp() })
-                .then(() => input.value = '');
+            const path = window.currentChatMode === 'pair' ? 'chat_pair' : 'chat_world';
+            const messagesRef = ref(rtdb, path);
+
+            push(messagesRef, {
+                text: text,
+                author: currentUserName,
+                uid: myUserId,
+                timestamp: Date.now()
+            }).then(() => {
+                input.value = '';
+            }).catch(err => console.error("Ошибка отправки:", err));
         };
 
         window.handleChatKey = (e) => { if (e.key === 'Enter') sendChatMessage(); };
@@ -366,58 +380,58 @@
             setupChatListener();
         };
 
-        let unsubscribeChat = null;
+        let currentListener = null;
         function setupChatListener() {
-            if (unsubscribeChat) unsubscribeChat();
-            const col = window.currentChatMode === 'pair' ? 'chat_pair' : 'chat_world';
-            const q = query(collection(db, col), orderBy('time', 'asc'), limit(50));
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
 
-            unsubscribeChat = onSnapshot(q, (snapshot) => {
-                const container = document.getElementById('chatMessages');
-                container.innerHTML = '';
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const div = document.createElement('div');
-                    const isMine = currentUser && data.author === currentUser.displayName;
-                    div.className = `chat-msg ${isMine ? 'mine' : ''}`;
-                    div.innerHTML = `<div class="author">${data.author || 'Аноним'}</div><div>${data.text}</div>`;
-                    container.appendChild(div);
-                });
+            const path = window.currentChatMode === 'pair' ? 'chat_pair' : 'chat_world';
+            const messagesRef = ref(rtdb, path);
+            const recentMessagesQuery = query(messagesRef, limitToLast(50));
+
+            // Очищаем предыдущий слушатель, если переключались
+            onChildAdded(recentMessagesQuery, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                const div = document.createElement('div');
+                const isMine = data.uid === myUserId;
+                div.className = `chat-msg ${isMine ? 'mine' : ''}`;
+                div.innerHTML = `
+                    <div class="author">${data.author || 'Аноним'}</div>
+                    <div>${data.text}</div>
+                `;
+                container.appendChild(div);
                 container.scrollTop = container.scrollHeight;
             });
         }
         setupChatListener();
 
+        // 3. Объятия через Realtime Database
         window.sendHug = function() {
-            const author = currentUser ? currentUser.displayName : 'Кто-то';
-            addDoc(collection(db, 'hugs'), { from: author, time: serverTimestamp() })
+            const hugsRef = ref(rtdb, 'hugs');
+            push(hugsRef, { from: currentUserName, time: Date.now() })
                 .then(() => alert('Объятие отправлено! ❤️'));
         };
 
-        onSnapshot(query(collection(db, 'hugs'), orderBy('time', 'desc'), limit(1)), (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === 'added') {
-                    const data = change.doc.data();
-                    const popup = document.getElementById('hugPopup');
-                    document.getElementById('hugText').innerText = `${data.from || 'Любимый человек'} шлет вам объятие! ❤️`;
-                    popup.style.display = 'block';
-                    setTimeout(() => popup.style.display = 'none', 5000);
-                }
-            });
+        const hugsRef = ref(rtdb, 'hugs');
+        onChildAdded(query(hugsRef, limitToLast(1)), (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.time > Date.now() - 10000) { // Показываем только свежие
+                const popup = document.getElementById('hugPopup');
+                document.getElementById('hugText').innerText = `${data.from || 'Любимый человек'} шлет вам объятие! ❤️`;
+                popup.style.display = 'block';
+                setTimeout(() => popup.style.display = 'none', 5000);
+            }
         });
     </script>
 
     <script>
-        // Смена темы
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
             const icon = document.getElementById('themeIcon');
-            if (theme === 'dark') {
-                icon.className = 'fa-solid fa-sun';
-            } else {
-                icon.className = 'fa-solid fa-moon';
-            }
+            icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
 
         window.toggleTheme = function() {
@@ -425,11 +439,9 @@
             setTheme(current === 'dark' ? 'light' : 'dark');
         };
 
-        // Загрузка сохраненной темы
         const savedTheme = localStorage.getItem('theme') || 'light';
         setTheme(savedTheme);
 
-        // Даты
         const startDate = new Date('2024-02-14');
         const meetingDate = new Date('2026-07-01');
         const today = new Date();
@@ -437,7 +449,6 @@
         const diffMeeting = Math.ceil((meetingDate - today) / (1000 * 60 * 60 * 24));
         document.getElementById('meetingCounter').innerText = diffMeeting > 0 ? `До встречи: ${diffMeeting} дн. ✨` : `Мы вместе! 🎉`;
 
-        // Погода
         fetch('https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.61&current_weather=true')
             .then(res => res.json()).then(data => {
                 document.getElementById('city1Name').innerText = 'Москва';
@@ -450,7 +461,6 @@
                 document.getElementById('city2Temp').innerText = Math.round(data.current_weather.temperature) + '°C';
             }).catch(() => {});
 
-        // Цветок
         function updatePlantUI() {
             const last = localStorage.getItem('lastWatered');
             const now = new Date().toDateString();
@@ -466,7 +476,6 @@
         };
         updatePlantUI();
 
-        // Ночник
         let isLampOn = localStorage.getItem('isLampOn') === 'true';
         function updateLampUI() {
             const icon = document.getElementById('lampIcon');
@@ -488,7 +497,6 @@
         };
         updateLampUI();
 
-        // Записки
         let notes = JSON.parse(localStorage.getItem('fridgeNotes')) || [{ text: 'Я люблю тебя! ❤️' }];
         function renderNotes() {
             const container = document.getElementById('notesContainer');
@@ -512,7 +520,6 @@
         window.deleteNote = (i) => { notes.splice(i, 1); renderNotes(); };
         renderNotes();
 
-        // Капсула времени
         window.saveCapsule = () => {
             const text = document.getElementById('capsuleInput').value;
             if (text) {
@@ -533,7 +540,6 @@
         }
         checkCapsule();
 
-        // Правда или действие
         const truths = ["Какое твое самое любимое воспоминание о нас?", "Что ты почувствовал(а), когда мы впервые встретились?", "Какая песня ассоциируется у тебя со мной?"];
         const dares = ["Позвони и скажи три главных слова без причины ❤️", "Пришли милое селфи прямо сейчас 📸", "Напиши список из 5 вещей за которые ты мне благодарен(а)"];
         window.playGame = (type) => {
@@ -541,7 +547,6 @@
             document.getElementById('gameDisplay').innerText = arr[Math.floor(Math.random() * arr.length)];
         };
 
-        // Плейлист
         let songs = JSON.parse(localStorage.getItem('relationSongs')) || [{ title: 'Наша любимая песня 🎶' }];
         function renderSongs() {
             const container = document.getElementById('playlistContainer');
@@ -564,7 +569,6 @@
         };
         renderSongs();
 
-        // Плеер
         window.loadVideo = () => {
             const url = document.getElementById('videoUrlInput').value;
             const iframe = document.getElementById('youtubePlayer');
